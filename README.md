@@ -95,3 +95,6 @@ application.yml.
 ```bash
 mvn test
 ```
+
+## Пример работы
+![image](https://github.com/Fics3/just-ai-test/assets/114524392/c88784f2-a501-4d83-86e5-30a919fbaedc)
