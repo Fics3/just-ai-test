@@ -1,4 +1,4 @@
-![image](https://github.com/Fics3/just-ai-test/assets/114524392/3da9088e-8a23-458c-abcc-4aa3750824d2)# README
+# README
 
 ## Описание проекта
 
