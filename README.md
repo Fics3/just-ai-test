@@ -1,4 +1,4 @@
-# README
+![image](https://github.com/Fics3/just-ai-test/assets/114524392/3da9088e-8a23-458c-abcc-4aa3750824d2)# README
 
 ## Описание проекта
 
@@ -95,3 +95,6 @@ application.yml.
 ```bash
 mvn test
 ```
+
+## Пример работы
+![image](https://github.com/Fics3/just-ai-test/assets/114524392/c88784f2-a501-4d83-86e5-30a919fbaedc)
