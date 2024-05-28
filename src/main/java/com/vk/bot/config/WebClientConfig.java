@@ -7,7 +7,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 @RequiredArgsConstructor
-public class ClientConfig {
+public class WebClientConfig {
 
     private final VkClientConfig vkClientConfig;
 

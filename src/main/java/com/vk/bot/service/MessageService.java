@@ -5,7 +5,7 @@ import com.vk.bot.client.VkClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +19,7 @@ public class MessageService {
             return;
         }
         for (var item : vkUnreadConversationResponse.response().items()) {
-            sendMessageBack(item.lastMessage().peerId(), ThreadLocalRandom.current().nextInt(), item.lastMessage().text());
+            sendMessageBack(item.lastMessage().peerId(), generateUniqueRandomId(), item.lastMessage().text());
         }
     }
 
@@ -30,5 +30,9 @@ public class MessageService {
 
     private boolean isInvalidResponse(VkUnreadConversationsResponse vkUnreadConversationsResponse) {
         return vkUnreadConversationsResponse == null || vkUnreadConversationsResponse.response() == null;
+    }
+
+    private Integer generateUniqueRandomId() {
+        return UUID.randomUUID().hashCode();
     }
 }

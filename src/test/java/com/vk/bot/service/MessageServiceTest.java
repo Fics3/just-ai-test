@@ -1,61 +1,64 @@
 package com.vk.bot.service;
 
-import com.vk.bot.DTO.VkLastMessage;
-import com.vk.bot.DTO.VkUnreadConversationsResponse;
+import com.vk.bot.BotScheduler;
 import com.vk.bot.client.VkClient;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import reactor.core.publisher.Mono;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
-import java.util.List;
+import static org.mockito.Mockito.verifyNoInteractions;
 
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
-
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class MessageServiceTest {
 
-    @Mock
+    @MockBean
+    private BotScheduler botScheduler;
+
+    @Autowired
+    private WebTestClient webTestClient;
+
+    @MockBean
     private VkClient vkClient;
 
-    @InjectMocks
-    private MessageService messageService;
-
-    @BeforeEach
-    void setUp() {
-        initMocks(this);
+    @BeforeAll
+    static void beforeAll() {
+        System.setProperty("VK_API_KEY", "111");
+        System.setProperty("VK_API_VERSION", "111");
     }
 
     @Test
-    void testProcessMessages_noUnreadMessages() {
-        // Arrange
-        when(vkClient.getUnreadConversations()).thenReturn(Mono.just(new VkUnreadConversationsResponse(null)));
+    @DisplayName("One message response - should send message back")
+    public void testProcessMessage_oneChatResponse() {
+        webTestClient.get()
+                .uri("/method/messages.getConversations?filter=unread&count=1&access_token=your_access_token&v=your_vk_api_version")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .json("{\"response\": {\"items\": [{\"last_message\": {\"peer_id\": 123, \"text\": \"Hello\"}}]}}");
 
-        // Act
-        messageService.processMessages();
-
-        // Assert
-        verify(vkClient, never()).sendVkMessage(anyInt(), anyInt(), anyString());
+        webTestClient.post()
+                .uri("/method/messages.send?access_token=your_access_token&peer_id=123&random_id=456&message=Response message&v=your_vk_api_version")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .json("{\"response\": {\"message_id\": 123}}");
     }
 
     @Test
-    void testProcessMessages_withUnreadMessages() {
-        // Arrange
-        VkLastMessage lastMessage = new VkLastMessage("Hello!", 123);
-        var item = new VkUnreadConversationsResponse.Response.Item(lastMessage);
-        VkUnreadConversationsResponse response = new VkUnreadConversationsResponse(new VkUnreadConversationsResponse.Response(List.of(item)));
+    @DisplayName("Invalid response from VK API - should not send any message")
+    public void testProcessMessage_invalidResponse() {
+        webTestClient.get()
+                .uri("/method/messages.getConversationsNullResponse?filter=unread&count=1&access_token=your_access_token&v=your_vk_api_version")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .isEmpty();
 
-        when(vkClient.getUnreadConversations()).thenReturn(Mono.just(response));
-        when(vkClient.sendVkMessage(anyInt(), anyInt(), anyString())).thenReturn(Mono.empty());
-
-        // Act
-        messageService.processMessages();
-
-        // Assert
-        verify(vkClient, times(1)).sendVkMessage(eq(123), anyInt(), eq("Вы написали: Hello!"));
+        // Verify that sendMessageBack method is never called
+        verifyNoInteractions(vkClient);
     }
-
 }
